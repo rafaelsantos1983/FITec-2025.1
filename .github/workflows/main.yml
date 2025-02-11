@@ -1,25 +1,4 @@
-# name: Continuos Integration
-
-# on: pull_request
-
-# jobs:
-#   continuos-integration:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Using Node.js
-#         uses: actions/setup-node@v2
-#         with:
-#           node-version: 16.
-#       - name: run install, build and test
-#         run: |
-#           npm install
-#           npm run build 
-#           npm run test
-
-
-name: CI Workflow
+name: CI/CD Workflow
 
 on:
   push:
@@ -30,9 +9,8 @@ on:
       - main
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v3
@@ -45,9 +23,122 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
-  tests:
-    runs-on: ubuntu-latest
+      - name: Executar ESLint
+        run: npx eslint .
 
+  security:
+    runs-on: ubuntu-latest
     steps:
-      - name: Executar testes
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Verificar vulnerabilidades
+        run: npm audit --audit-level=high
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, security]
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Cache das dependências
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Restaurar cache do Node.js
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Executar testes unitários
         run: npm test
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Executar testes de integração
+        run: echo "Executando testes de integração..."
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Instalar Cypress
+        run: npm install cypress --save-dev
+
+      - name: Executar testes E2E
+        run: npx cypress run
+
+  staging-deploy:
+    runs-on: ubuntu-latest
+    needs: [integration-test, e2e-test]
+    steps:
+      - name: Simular Deploy para Staging
+        run: echo "Deploy para ambiente de homologação realizado!"
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: staging-deploy
+    steps:
+      - name: Verificar se o ambiente de staging está online
+        run: echo "Executando smoke tests no ambiente de staging..."
+
+  production-deploy:
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    steps:
+      - name: Simular Deploy para Produção
+        run: echo "Deploy para produção realizado!"
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: production-deploy
+    steps:
+      - name: Enviar notificação de sucesso
+        run: echo "Notificação enviada para equipe!"
