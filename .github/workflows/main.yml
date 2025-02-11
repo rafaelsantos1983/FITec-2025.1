@@ -19,7 +19,7 @@
 #           npm run test
 
 
-name: Continuos Integration
+name: CI Workflow
 
 on:
   push:
@@ -37,11 +37,13 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v3
 
-      - name: Configurar o Java
-        uses: actions/setup-java@v3
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          node-version: '18'
 
-      - name: Construir e testar a aplicação
-        run: mvn verify
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Executar testes
+        run: npm test
