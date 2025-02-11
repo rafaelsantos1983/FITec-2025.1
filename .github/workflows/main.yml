@@ -45,5 +45,9 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Executar testes
         run: npm test
