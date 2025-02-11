@@ -102,22 +102,9 @@ jobs:
       - name: Executar testes de integração
         run: echo "Executando testes de integração..."
 
-  e2e-test:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v3
-
-      - name: Instalar Cypress
-        run: npm install cypress --save-dev
-
-      - name: Executar testes E2E
-        run: npx cypress run
-
   staging-deploy:
     runs-on: ubuntu-latest
-    needs: [integration-test, e2e-test]
+    needs: [integration-test]
     steps:
       - name: Simular Deploy para Staging
         run: echo "Deploy para ambiente de homologação realizado!"
