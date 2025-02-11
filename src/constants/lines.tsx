@@ -22,7 +22,7 @@ export const LinesPrefixe = {
   'I': '_ ',
   'CODE': '`',
   'TABLE': '',
-  'LIST-ENUM': '1. ',
+  'LIST-ENUM': '2. ',
   'LIST-BULLET': '- ',
   'LINK': '[Name](url)',
   'CHECKBOX': '-[ ] '
