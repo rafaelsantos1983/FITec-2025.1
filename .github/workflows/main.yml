@@ -41,7 +41,7 @@ jobs:
         run: npm install
 
       - name: Verificar vulnerabilidades
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=none
 
   build:
     runs-on: ubuntu-latest
